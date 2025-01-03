@@ -132,11 +132,15 @@ async fn main() -> Result<(), reqwest::Error> {
     let mut long = 5.57334;
     let mut place = String::from("Nesheim");
 
+
     if args.len() >= 4 {
         lat = args[2].parse().unwrap();
         long = args[3].parse().unwrap();
         place = format!("{}, {}", lat, long);
-
+    } else if args.len() >= 3 && !args.contains(&"--short".to_string()) {
+        lat = args[1].parse().unwrap();
+        long = args[2].parse().unwrap();
+        place = format!("{}, {}", lat, long);
     } else if args.len() >= 3 {
         println!("Please add longitude");
         exit(-1);
