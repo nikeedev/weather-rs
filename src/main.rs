@@ -2,6 +2,7 @@ use reqwest::header::{CONTENT_TYPE, USER_AGENT};
 use serde_json::Value;
 use std::env;
 use chrono::{DateTime, Local, TimeZone, Utc};
+use std::process::exit;
 
 fn direction<'a>(degrees: f64) -> &'a str {
     match degrees {
@@ -112,6 +113,10 @@ fn weather_description(value_name: &str) -> &str {
 async fn main() -> Result<(), reqwest::Error> {
     let args: Vec<String> = env::args().collect();
 
+    println!("usage: ./weather-rs [--short] [latitude] [longitude]");
+    println!("\t--short: outputs the weather in a short format");
+    println!("\tlatitude, longitude: change the coordiantes for the weather (Norway only)");
+
     // let user_info = reqwest::get("https://api.techniknews.net/ipgeo/")
     //     .await?
     //     .text()
@@ -123,8 +128,19 @@ async fn main() -> Result<(), reqwest::Error> {
     // let long = user_info["lon"].as_f64().unwrap();
     
     // Nesheim
-    let lat = 59.46279;
-    let long = 5.57334;
+    let mut lat = 59.46279;
+    let mut long = 5.57334;
+    let mut place = String::from("Nesheim");
+
+    if args.len() >= 4 {
+        lat = args[2].parse().unwrap();
+        long = args[3].parse().unwrap();
+        place = format!("{}, {}", lat, long);
+
+    } else if args.len() >= 3 {
+        println!("Please add longitude");
+        exit(-1);
+    }
 
     // println!("Getting weather for following location: {}, {}", lat, long);
     let client = reqwest::Client::builder()
@@ -156,9 +172,10 @@ async fn main() -> Result<(), reqwest::Error> {
     let current_weather = locast["properties"]["timeseries"][0]["data"].clone();
 
     
+    
     match args.contains(&"--short".to_string()) {
         true => {
-            println!("Weather at Nesheim");
+            println!("Weather at {}", place);
             let now = current_weather["instant"]["details"].clone();
             println!("Temperature 🌡️: {}°C", now["air_temperature"]);
             println!("Wind 🌬️ : \n\tDirection {} ({}°) \n\tWind speed: {} m/s", direction(now["wind_from_direction"].as_f64().unwrap()), now["wind_from_direction"].as_f64().unwrap(), now["wind_speed"]);
@@ -166,7 +183,7 @@ async fn main() -> Result<(), reqwest::Error> {
         },
 
         false => {
-            println!("Weather at Nesheim");
+            println!("Weather at {}", place);
             let now = current_weather["instant"]["details"].clone();
             println!("Now ({}):", weather_time);
             println!("\tTemperature 🌡️: {}°C", now["air_temperature"]);
@@ -177,17 +194,17 @@ async fn main() -> Result<(), reqwest::Error> {
             println!("\nWeather next hour:");
             println!("\tPrecipitation probability: {}%", next_hour["probability_of_precipitation"]);
             println!("\tPrecipitation amount: {} mm", next_hour["precipitation_amount"]);
-            println!("\tPrecipitation amount (min-max): {} mm - {} mm", next_hour["precipitation_amount_min"], next_hour["precipitation_amount_max"]);
+            println!("\tPrecipitation amount (min/max): {} mm / {} mm", next_hour["precipitation_amount_min"], next_hour["precipitation_amount_max"]);
             let borrow = current_weather["next_1_hours"]["summary"].clone();
             let next_hour = borrow["symbol_code"].as_str().unwrap();
             println!("\tWeather summary: {}", weather_description(next_hour));
 
             let six_hour = current_weather["next_6_hours"]["details"].clone();
             println!("\nWeather for the next 6 hours:");
-            println!("\tTemperature (min-max): {}-{} °C", six_hour["air_temperature_min"], six_hour["air_temperature_max"]);
+            println!("\tTemperature (min/max): {} / {} °C", six_hour["air_temperature_min"], six_hour["air_temperature_max"]);
             println!("\tPrecipitation probability: {}%", six_hour["probability_of_precipitation"]);
             println!("\tPrecipitation amount: {} mm", six_hour["precipitation_amount"]);
-            println!("\tPrecipitation amount (min-max): {} mm - {} mm", six_hour["precipitation_amount_min"], six_hour["precipitation_amount_max"]);
+            println!("\tPrecipitation amount (min/max): {} mm / {} mm", six_hour["precipitation_amount_min"], six_hour["precipitation_amount_max"]);
             let borrow = current_weather["next_6_hours"]["summary"].clone();
             let six_hour = borrow["symbol_code"].as_str().unwrap();
             println!("\tWeather summary: {}", weather_description(six_hour));
