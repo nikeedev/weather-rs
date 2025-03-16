@@ -112,7 +112,8 @@ fn weather_description(value_name: &str) -> &str {
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let args: Vec<String> = env::args().collect();
- 
+
+
     // let user_info = reqwest::get("https://api.techniknews.net/ipgeo/")
     //     .await?
     //     .text()
@@ -139,7 +140,7 @@ async fn main() -> Result<(), reqwest::Error> {
         place = format!("{}, {}", lat, long);
     } else if args.len() >= 3 {
         println!("Please add longitude");
-            
+           
         println!("usage: ./weather-rs [--short] [latitude] [longitude]");
         println!("\t--short: outputs the weather in a short format");
         println!("\tlatitude, longitude: change the coordiantes for the weather (Norway only)");
