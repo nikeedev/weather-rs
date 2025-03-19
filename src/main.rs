@@ -1,7 +1,7 @@
 use reqwest::header::{CONTENT_TYPE, USER_AGENT};
 use serde_json::Value;
 use std::env;
-use chrono::{DateTime, Local, TimeZone, Utc};
+use chrono::{DateTime, Local, Utc};
 use std::process::exit;
 
 fn direction<'a>(degrees: f64) -> &'a str {
@@ -113,6 +113,15 @@ fn weather_description(value_name: &str) -> &str {
 async fn main() -> Result<(), reqwest::Error> {
     let args: Vec<String> = env::args().collect();
 
+    // just view help because user asked, exit then
+    if args.contains(&"help".to_string()) {
+        println!("usage: ./weather-rs [--short] [latitude] [longitude]");
+        println!("\t--short: outputs the weather in a short format");
+        println!("\tlatitude, longitude: change the coordiantes for the weather (Norway only)");
+        println!("help: show this message");
+
+        exit(0);
+    }
 
     // let user_info = reqwest::get("https://api.techniknews.net/ipgeo/")
     //     .await?
@@ -128,7 +137,6 @@ async fn main() -> Result<(), reqwest::Error> {
     let mut lat = 59.46279;
     let mut long = 5.57334;
     let mut place = String::from("Nesheim");
-
 
     if args.len() >= 4 {
         lat = args[2].parse().unwrap();
