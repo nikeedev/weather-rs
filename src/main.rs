@@ -109,15 +109,24 @@ fn weather_description(value_name: &str) -> &str {
     }
 }
 
+fn get_value_arg<'a>(from: &'static str, v: &'a[String]) -> Option<&'a String> {
+    let index = v.iter().position(|r| r == format!("--{from}").as_str()).unwrap();
+
+    return v.get(index + 1_usize);
+    // println!("Value for {:?} is not defined!", from);
+    // exit(1);
+}
+
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let args: Vec<String> = env::args().collect();
 
     // just view help because user asked, exit then
     if args.contains(&"help".to_string()) {
-        println!("usage: ./weather-rs [--short] [latitude] [longitude]");
+        println!("usage: ./weather-rs [--short] [--lat] [--long] [--name <name>]");
         println!("\t--short: outputs the weather in a short format");
-        println!("\tlatitude, longitude: change the coordiantes for the weather (Norway only)");
+        println!("\t--lat-itude, --long-itude: change the coordiantes for the weather (Norway only)");
+        println!("\t--name: give a name to the place if you use the coordinates");
         println!("help: show this message");
 
         exit(0);
@@ -137,24 +146,42 @@ async fn main() -> Result<(), reqwest::Error> {
     let mut lat = 59.46279;
     let mut long = 5.57334;
     let mut place = String::from("Nesheim");
+   
+    let mut got_coords = false;
 
-    if args.len() >= 4 {
-        lat = args[2].parse().unwrap();
-        long = args[3].parse().unwrap();
-        place = format!("{}, {}", lat, long);
-    } else if args.len() >= 3 && !args.contains(&"--short".to_string()) {
-        lat = args[1].parse().unwrap();
-        long = args[2].parse().unwrap();
-        place = format!("{}, {}", lat, long);
-    } else if args.len() >= 3 {
-        println!("Please add longitude");
-           
-        println!("usage: ./weather-rs [--short] [latitude] [longitude]");
-        println!("\t--short: outputs the weather in a short format");
-        println!("\tlatitude, longitude: change the coordiantes for the weather (Norway only)");
-
-        exit(-1);
+    if args.contains(&"--lat".to_string()) {
+        let lat_temp = get_value_arg("lat", &args);
+        if lat_temp.is_none() {
+            println!("Value for \"lat\" was not defined!");
+            exit(0);
+        }
+        lat = lat_temp.unwrap().parse::<f64>().unwrap();
     }
+   
+    if args.contains(&"--long".to_string()) {
+        let long_temp = get_value_arg("long", &args);
+        if long_temp.is_none() {
+            println!("Value for \"long\" was not defined!");
+            exit(0);
+        }
+        long = long_temp.unwrap().parse::<f64>().unwrap();
+        got_coords = true;
+    }
+        
+    if got_coords {
+        place = format!("{}, {}", lat, long);
+    }
+
+    if args.contains(&"--name".to_string()) {
+        let name_temp = get_value_arg("name", &args);
+        if name_temp.is_none() {
+             println!("Value for \"name\" was not defined!");
+             exit(0);
+        }
+        place = name_temp.unwrap().to_string();
+    }
+ 
+        
 
     // println!("Getting weather for following location: {}, {}", lat, long);
     let client = reqwest::Client::builder()
