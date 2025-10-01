@@ -1,6 +1,6 @@
 # weather-rs: Your terminal weather app 
 
-![video.gif][video.gif]
+<img src="video.gif" alt="video.gif" style="width: 700px;">
 
 This program is using [METNO](https://en.wikipedia.org/wiki/Norwegian_Meteorological_Institute)'s weather API, that the famous Norwegian weather app uses: YR. 
 This means the program will work optimally in Norway and some parts of Scandinavia (coordinates within forementioned areas). Outside forementioned areas, the weather predictions could be incorrect or unstable. Data that couldn't be retrieved by METNO will show as `null` next to the unit of measurement.
