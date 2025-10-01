@@ -1,6 +1,6 @@
 use reqwest::header::{CONTENT_TYPE, USER_AGENT};
 use serde_json::Value;
-use std::env;
+use std::{env, fs};
 use chrono::{DateTime, Local, Utc};
 use std::process::exit;
 
@@ -181,7 +181,38 @@ async fn main() -> Result<(), reqwest::Error> {
         place = name_temp.unwrap().to_string();
     }
  
+    if args.contains(&"--place".to_string()) {
+        let place_temp = get_value_arg("place", &args);
+        if place_temp.is_none() {
+             println!("Value for \"place\" was not defined!");
+             exit(0);
+        }
+
+        // get location of 
+        let file_path = match env::current_exe() {
+            Ok(path) => {
+                let cloned = path.clone();
+                let cloned = cloned.parent().unwrap().to_str().unwrap().to_string();
+                cloned
+            },
+            Err(e) => {
+                eprintln!("Failed to get executable path: {}", e);
+                String::new()
+            }   
+        };
         
+        let file_path = file_path.replace("\\", "/");
+
+        let contents = fs::read_to_string(format!("{}/places.json", file_path))
+            .expect("Should have been able to read the file");
+        
+        let parsed: Value = serde_json::from_str(&contents.as_str()).unwrap();
+        
+        place = parsed[place_temp.unwrap()]["name"].to_string();
+        lat = parsed[place_temp.unwrap()]["lat"].as_f64().unwrap();
+        long = parsed[place_temp.unwrap()]["long"].as_f64().unwrap();
+    }
+ 
 
     // println!("Getting weather for following location: {}, {}", lat, long);
     let client = reqwest::Client::builder()
