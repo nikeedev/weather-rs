@@ -46,6 +46,3 @@ Example `places.json` file:
     }
 }
 ```
-
-
-
