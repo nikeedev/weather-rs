@@ -122,12 +122,13 @@ async fn main() -> Result<(), reqwest::Error> {
     let args: Vec<String> = env::args().collect();
 
     // just view help because user asked, exit then
-    if args.contains(&"help".to_string()) {
-        println!("usage: ./weather-rs [--short] [--lat] [--long] [--name <name>]");
+    if args.contains(&"help".to_string()) || args.contains(&"--help".to_string()) {
+        println!("usage: ./weather-rs [--short] [--lat <lat>] [--long <long>] [--name <name>] [--place <callname>]");
         println!("\t--short: outputs the weather in a short format");
-        println!("\t--lat-itude, --long-itude: change the coordiantes for the weather (Norway only)");
-        println!("\t--name: give a name to the place if you use the coordinates");
-        println!("help: show this message");
+        println!("\t--lat <int>, --long <int>: change the coordiantes for the weather (Norway only)");
+        println!("\t--name <string>: give a name to the place if you use the coordinates");
+        println!("\t--place <string>: retrieves the place from the given call name from `places.json` file");
+        println!("help, --help: show this message");
 
         exit(0);
     }
