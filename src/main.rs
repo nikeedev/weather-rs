@@ -219,15 +219,22 @@ async fn main() -> Result<(), reqwest::Error> {
     let client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
+    
 
-    let locast = client
+    let before_locast = client
         .get(format!(
             "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat={lat}&lon={long}&altitude=76"
         ))
         .header(CONTENT_TYPE, "application/json")
-        .header(USER_AGENT, "weather 1.0/nikeedev")
+        .header(USER_AGENT, "weather-rs/1.2.0 github.com/nikeedev/")
         .send()
-        .await?
+        .await?;    
+    
+    if cfg!(debug_assertions) {
+        println!("{:#?}", before_locast.headers());
+    }
+
+    let locast = before_locast
         .text()
         .await?;
 
@@ -251,6 +258,7 @@ async fn main() -> Result<(), reqwest::Error> {
             println!("Weather at {}", place);
             let now = current_weather["instant"]["details"].clone();
             println!("Temperature 🌡️: {}°C", now["air_temperature"]);
+            println!("Air pressure (at sea level): {} hPa", now["air_pressure_at_sea_level"]);
             println!("Wind 🌬️ : \n\tDirection {} ({}°) \n\tWind speed: {} m/s", direction(now["wind_from_direction"].as_f64().unwrap()), now["wind_from_direction"].as_f64().unwrap(), now["wind_speed"]);
            println!("UV level (at clear sky) ☀️: {}", now["ultraviolet_index_clear_sky"].as_f64().unwrap().floor());
         },
@@ -260,6 +268,7 @@ async fn main() -> Result<(), reqwest::Error> {
             let now = current_weather["instant"]["details"].clone();
             println!("Now ({}):", weather_time);
             println!("\tTemperature 🌡️: {}°C", now["air_temperature"]);
+            println!("\tAir pressure (at sea level): {} hPa", now["air_pressure_at_sea_level"]);
             println!("\tWind 🌬️ : \n\t\tDirection {} ({}°) \n\t\tWind speed: {} m/s", direction(now["wind_from_direction"].as_f64().unwrap()), now["wind_from_direction"].as_f64().unwrap(), now["wind_speed"]);
             println!("\tUV level (at clear sky) ☀️: {}", now["ultraviolet_index_clear_sky"].as_f64().unwrap().floor());
             
